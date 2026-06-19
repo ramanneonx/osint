@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OSINT Database Profiler</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #040711; --bg2: #070d1c; --card: #0b1326; --card2: #0e1932;
+  --cyan: #00f5d4; --blue: #0066ff; --purple: #7c3aed;
+  --pink: #f72585; --orange: #ff6b35; --green: #39d353;
+  --txt: #e8eaf6; --txt2: #8892b0; --dim: #4a5568;
+  --border: rgba(0,245,212,0.15); --border2: rgba(0,102,255,0.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* BG */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,245,212,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,212,.03) 1px,transparent 1px);
+  background-size:50px 50px}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(0,102,255,.08) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 80% 90%,rgba(124,58,237,.07) 0%,transparent 60%)}
+
+/* PARTICLES */
+.particle{position:fixed;border-radius:50%;pointer-events:none;animation:pfloat linear infinite;z-index:0}
+@keyframes pfloat{0%{opacity:0;transform:translateY(100vh)}10%{opacity:.5}90%{opacity:.2}100%{opacity:0;transform:translateY(-100px) translateX(var(--dx))}}
+
+#app{position:relative;z-index:1}
+
+/* HEADER */
+header{padding:20px 32px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);background:rgba(4,7,17,.85);
+  backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--purple),var(--pink));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 0 20px rgba(124,58,237,.3)}
+.logo-title{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;letter-spacing:2px;
+  background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:10px;color:var(--txt2);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+.hstats{display:flex;gap:12px;align-items:center}
+.pill{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;
+  font-size:11px;color:var(--txt2);display:flex;align-items:center;gap:6px;max-width:300px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:blink 2s ease-in-out infinite}
+.pill strong{color:var(--cyan)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* HERO */
+.hero{padding:56px 32px 36px;text-align:center;max-width:860px;margin:0 auto}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.08);
+  border:1px solid rgba(124,58,237,.2);border-radius:20px;padding:6px 16px;
+  font-size:11px;color:var(--purple);letter-spacing:2px;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;margin-bottom:20px}
+.hero h1{font-family:'Orbitron',monospace;font-size:clamp(26px,5vw,50px);font-weight:900;
+  line-height:1.1;margin-bottom:14px;
+  background:linear-gradient(135deg,#fff 0%,var(--purple) 50%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--txt2);font-size:14px;line-height:1.6;margin-bottom:32px}
+
+/* ACTION SECTION */
+.action-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;
+  margin-bottom:16px;box-shadow:0 0 40px rgba(124,58,237,.04);transition:border-color .3s,box-shadow .3s;
+  display:flex;justify-content:center;align-items:center;gap:15px}
+#profileBtn{background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:12px;
+  padding:16px 40px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;transition:transform .2s,box-shadow .2s;
+  font-family:'Inter',sans-serif;letter-spacing:1px;box-shadow:0 4px 15px rgba(124,58,237,0.3)}
+#profileBtn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,.5)}
+#profileBtn:disabled{opacity:.6;cursor:not-allowed}
+
+/* LAYOUT */
+.main{max-width:1580px;margin:0 auto;padding:0 20px 60px;display:grid;
+  grid-template-columns:300px 1fr;gap:20px}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.phead{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.ptitle{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--purple);display:flex;align-items:center;gap:6px}
+.pbody{padding:14px 18px}
+.badge2{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:16px;
+  padding:3px 10px;font-size:11px;color:var(--purple);font-family:'JetBrains Mono',monospace}
+
+/* TREE STYLING */
+.tree-node {
+  margin-left: 6px;
+}
+.tree-folder {
+  margin-bottom: 4px;
+}
+.tree-folder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  user-select: none;
+}
+.tree-folder-header:hover {
+  background: rgba(124, 58, 237, 0.05);
+  border-color: rgba(124, 58, 237, 0.2);
+}
+.tree-folder-toggle {
+  font-size: 10px;
+  color: var(--txt2);
+  transition: transform 0.2s;
+  width: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+.tree-folder-toggle.expanded {
+  transform: rotate(90deg);
+}
+.tree-folder-icon {
+  font-size: 14px;
+}
+.tree-folder-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree-folder-meta {
+  font-size: 9px;
+  color: var(--dim);
+}
+.tree-folder-children {
+  display: none;
+  border-left: 1px dashed rgba(124, 58, 237, 0.1);
+  margin-left: 13px;
+  padding-left: 6px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+.tree-folder-children.expanded {
+  display: block;
+}
+.tree-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+.tree-file:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.tree-file-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--txt2);
+}
+.tree-file.sel .tree-file-title {
+  color: var(--txt);
+}
+.tree-checkbox {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(4, 7, 17, 0.6);
+}
+.tree-checkbox.checked {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+.tree-checkbox.checked::after {
+  content: '\2713';
+  font-weight: bold;
+}
+.tree-checkbox.indeterminate {
+  background: transparent;
+  border-color: var(--purple);
+}
+.tree-checkbox.indeterminate::after {
+  content: '';
+  width: 7px;
+  height: 2px;
+  background: var(--purple);
+  border-radius: 1px;
+}
+
+/* CONTENT CONTAINER */
+.content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  padding: 70px 30px;
+  color: var(--dim);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.eico {
+  font-size: 56px;
+  margin-bottom: 18px;
+  opacity: .25;
+}
+.etxt {
+  font-size: 16px;
+  color: var(--txt2);
+  margin-bottom: 6px;
+}
+.esub {
+  font-size: 13px;
+  color: var(--dim);
+}
+.spin {
+  display: inline-block;
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--card);
+  border:1px solid var(--purple);border-radius:12px;padding:11px 18px;
+  font-size:12px;color:var(--purple);z-index:1000;transform:translateY(70px);opacity:0;
+  transition:all .3s;font-family:'JetBrains Mono',monospace;max-width:350px}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(124,58,237,.25);border-radius:3px}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.main{grid-template-columns:1fr}.sidebar{order:2}.content-area{order:1}}
+@media(max-width:600px){header{padding:14px 16px}.hero{padding:36px 16px 24px}.hstats{display:none}}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div id="particles"></div>
+
+<div id="app">
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <div>
+      <div class="logo-title">OSINT PROFILER</div>
+      <div class="logo-sub">Data Quality & Format Analyzer</div>
+    </div>
+  </div>
+  <div class="hstats">
+    <div class="pill" id="cpuPill" title="Detected CPU Device">&#128187; <strong id="hCPU">Detecting...</strong></div>
+    <div class="pill" id="gpuPill" title="Detected GPU Device">&#9889; <strong id="hGPU">Detecting...</strong></div>
+    <div class="pill"><span class="dot"></span>Files: <strong id="hFiles">—</strong></div>
+    <div class="pill">&#128190; <strong id="hSize">—</strong></div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">📊 Log Profiling Engine</div>
+  <h1>Format & Origin Analysis</h1>
+  <p>Analyze your log database files to instantly detect formats (single-line or multi-line block),<br/>extract top domains, check phone numbers country distribution, and identify Indian targets.</p>
+
+  <div class="action-box">
+    <button id="profileBtn" onclick="doProfile()">📊 PROFILE SELECTED DATABASES</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="mainContent" style="display:none">
+  <!-- SIDEBAR (FILE TREE) -->
+  <div class="sidebar">
+    <div class="panel">
+      <div class="phead">
+        <div class="ptitle">📁 Choose Files</div>
+        <span class="badge2" id="sFileCount">—</span>
+      </div>
+      <div class="pbody" id="fileList">
+        <div style="font-size:12px;color:var(--dim)">Loading database files...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS AREA -->
+  <div class="content-area" id="profilerContent">
+    <div class="empty">
+      <div class="eico">📊</div>
+      <div class="etxt">No database selected</div>
+      <div class="esub">Select folders or individual files in the sidebar and click "PROFILE SELECTED DATABASES" to generate the report.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = window.location.origin;
+let allFiles = [], selFiles = new Set();
+
+// ── PARTICLES ──────────────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const x = Math.random()*100, dur = 12+Math.random()*18, dx = (Math.random()-.5)*160, delay = Math.random()*-20;
+    p.style.cssText = `left:${x}%;top:100%;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;
+      animation-duration:${dur}s;animation-delay:${delay}s;--dx:${dx}px;
+      background:${Math.random()>.5?'#7c3aed':'#f72585'}`;
+    c.appendChild(p);
+  }
+})();
+
+// ── INIT WITH RETRY ───────────────────────────────────────────────
+async function init() {
+  document.getElementById('mainContent').style.display = 'grid';
+  loadHardwareInfo();
+  for(let i=0; i<30; i++){
+    try {
+      const r = await fetch(API+'/api/info', {cache:'no-store'});
+      if(!r.ok) throw new Error('bad status');
+      const d = await r.json();
+      allFiles = d.files || [];
+      document.getElementById('hFiles').textContent = d.total_files;
+      document.getElementById('hSize').textContent = d.total_size_human;
+      allFiles.forEach(f => selFiles.add(f.name));
+      renderFiles();
+      return;
+    } catch(e) {
+      if(i < 29) await sleep(1000);
+      else {
+        document.getElementById('fileList').innerHTML = '<div style="color:#ff6b35;font-size:11px">Cannot connect to server.</div>';
+      }
+    }
+  }
+}
+
+async function loadHardwareInfo() {
+  try {
+    const r = await fetch(API+'/api/hardware', {cache:'no-store'});
+    if(r.ok) {
+      const d = await r.json();
+      const cpuTxt = d.cpu_name + ' (' + d.cpu_cores + ' Cores)';
+      document.getElementById('hCPU').textContent = cpuTxt.length > 30 ? cpuTxt.substring(0,30)+'...' : cpuTxt;
+      document.getElementById('hCPU').title = d.cpu_name;
+      document.getElementById('hGPU').textContent = d.gpu_name.length > 25 ? d.gpu_name.substring(0,25)+'...' : d.gpu_name;
+      document.getElementById('hGPU').title = d.gpu_name;
+    }
+  } catch(e) {}
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ── FILE TREE ──────────────────────────────────────────────────────
+function buildFileTree(files) {
+  const root = { name: 'root', type: 'folder', children: {}, files: [], totalSize: 0, path: '' };
+  files.forEach((f, idx) => {
+    const parts = f.name.split('/');
+    let current = root;
+    current.totalSize += f.size;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const dir = parts[i];
+      if (!current.children[dir]) {
+        current.children[dir] = {
+          name: dir,
+          type: 'folder',
+          children: {},
+          files: [],
+          totalSize: 0,
+          path: parts.slice(0, i + 1).join('/')
+        };
+      }
+      current = current.children[dir];
+      current.totalSize += f.size;
+    }
+    current.files.push({
+      ...f,
+      index: idx,
+      type: 'file',
+      shortName: parts[parts.length - 1]
+    });
+  });
+  return root;
+}
+
+function countFilesInNode(node) {
+  let count = node.files.length;
+  Object.keys(node.children).forEach(key => {
+    count += countFilesInNode(node.children[key]);
+  });
+  return count;
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+let globalFileTree = null;
+
+function findNodeByPath(root, path) {
+  if (!path) return root;
+  const parts = path.split('/');
+  let current = root;
+  for (let i = 0; i < parts.length; i++) {
+    if (!current || !current.children) return null;
+    current = current.children[parts[i]];
+  }
+  return current;
+}
+
+function renderTreeNodeChildren(node, depth = 0) {
+  let html = '';
+  const sortedFolders = Object.keys(node.children).sort();
+  sortedFolders.forEach(key => {
+    const subFolder = node.children[key];
+    const fileCount = countFilesInNode(subFolder);
+    const sizeStr = formatBytes(subFolder.totalSize);
+    html += `
+      <div class="tree-folder">
+        <div class="tree-folder-header" data-path="${esc(subFolder.path)}" onclick="handleFolderClick(this, event)" style="margin-left: ${depth * 6}px;">
+          <div class="tree-folder-toggle">▸</div>
+          <div class="tree-checkbox"></div>
+          <span class="tree-folder-icon">📁</span>
+          <div class="tree-folder-title" title="${esc(subFolder.name)}">${esc(subFolder.name)}</div>
+          <div class="tree-folder-meta">${fileCount} (${sizeStr})</div>
+        </div>
+        <div class="tree-folder-children" data-rendered="false"></div>
+      </div>
+    `;
+  });
+  const sortedFiles = node.files.sort((a, b) => a.shortName.localeCompare(b.shortName));
+  sortedFiles.forEach(file => {
+    html += `
+      <div class="tree-file" id="file-item-${file.index}" data-name="${esc(file.name)}" onclick="handleFileClick(this, event)" style="margin-left: ${depth * 6}px;">
+        <div style="width: 10px;"></div>
+        <div class="tree-checkbox" id="file-cb-${file.index}"></div>
+        <span style="font-size: 13px;">📄</span>
+        <div class="tree-file-title" title="${esc(file.name)}">${esc(file.shortName)}</div>
+        <div style="font-size: 9px; color: var(--dim);">${file.size_human}</div>
+      </div>
+    `;
+  });
+  return html;
+}
+
+function renderFiles() {
+  document.getElementById('sFileCount').textContent = allFiles.length;
+  if(allFiles.length === 0) {
+    document.getElementById('fileList').innerHTML = '<div style="color:var(--dim);font-size:11px">Place text files inside database folder.</div>';
+    return;
+  }
+  globalFileTree = buildFileTree(allFiles);
+  document.getElementById('fileList').innerHTML = renderTreeNodeChildren(globalFileTree, 0);
+  updateTreeSelectionUI();
+}
+
+function handleFolderClick(headerEl, event) {
+  const folderPath = headerEl.getAttribute('data-path');
+  if (event.target.classList.contains('tree-checkbox')) {
+    event.stopPropagation();
+    toggleFolderSelection(folderPath);
+  } else {
+    const toggleEl = headerEl.querySelector('.tree-folder-toggle');
+    const childrenEl = headerEl.nextElementSibling;
+    if (toggleEl && childrenEl) {
+      if (childrenEl.getAttribute('data-rendered') === 'false') {
+        const node = findNodeByPath(globalFileTree, folderPath);
+        if (node) {
+          const depth = (parseInt(headerEl.style.marginLeft || '0') / 6) + 1;
+          childrenEl.innerHTML = renderTreeNodeChildren(node, depth);
+          childrenEl.setAttribute('data-rendered', 'true');
+        }
+      }
+      const isExpanded = childrenEl.classList.toggle('expanded');
+      if (isExpanded) {
+        toggleEl.classList.add('expanded');
+        toggleEl.textContent = '▼';
+      } else {
+        toggleEl.classList.remove('expanded');
+        toggleEl.textContent = '▸';
+      }
+      updateTreeSelectionUI();
+    }
+  }
+}
+
+function handleFileClick(fileEl, event) {
+  const fileName = fileEl.getAttribute('data-name');
+  toggleFileSelection(fileName);
+}
+
+function toggleFolderSelection(folderPath) {
+  const folderFiles = allFiles.filter(f => f.name === folderPath || f.name.startsWith(folderPath + '/'));
+  const allSelected = folderFiles.every(f => selFiles.has(f.name));
+  if (allSelected) {
+    folderFiles.forEach(f => selFiles.delete(f.name));
+  } else {
+    folderFiles.forEach(f => selFiles.add(f.name));
+  }
+  updateTreeSelectionUI();
+}
+
+function toggleFileSelection(fileName) {
+  if (selFiles.has(fileName)) {
+    selFiles.delete(fileName);
+  } else {
+    selFiles.add(fileName);
+  }
+  updateTreeSelectionUI();
+}
+
+function getTreeSelectionStats(node, statsMap = {}) {
+  let total = node.files.length;
+  let selected = node.files.filter(f => selFiles.has(f.name)).length;
+  Object.keys(node.children).forEach(key => {
+    const subFolder = node.children[key];
+    getTreeSelectionStats(subFolder, statsMap);
+    const subStats = statsMap[subFolder.path];
+    total += subStats.total;
+    selected += subStats.selected;
+  });
+  if (node.path) {
+    statsMap[node.path] = { total, selected };
+  } else {
+    statsMap[''] = { total, selected };
+  }
+  return statsMap;
+}
+
+function updateTreeSelectionUI() {
+  const fileEls = document.querySelectorAll('.tree-file');
+  fileEls.forEach(fileEl => {
+    const fileName = fileEl.getAttribute('data-name');
+    const cb = fileEl.querySelector('.tree-checkbox');
+    if (cb) {
+      if (selFiles.has(fileName)) {
+        cb.classList.add('checked');
+        fileEl.classList.add('sel');
+      } else {
+        cb.classList.remove('checked');
+        fileEl.classList.remove('sel');
+      }
+    }
+  });
+
+  if (!globalFileTree) return;
+  const statsMap = getTreeSelectionStats(globalFileTree);
+  const headers = document.querySelectorAll('.tree-folder-header');
+  headers.forEach(headerEl => {
+    const folderPath = headerEl.getAttribute('data-path');
+    const stats = statsMap[folderPath];
+    if (stats) {
+      const cb = headerEl.querySelector('.tree-checkbox');
+      if (cb) {
+        cb.classList.remove('checked', 'indeterminate');
+        if (stats.selected === stats.total && stats.total > 0) {
+          cb.classList.add('checked');
+        } else if (stats.selected > 0) {
+          cb.classList.add('indeterminate');
+        }
+      }
+    }
+  });
+}
+
+// ── PROFILING ACTION ───────────────────────────────────────────────
+async function doProfile() {
+  const filesList = Array.from(selFiles);
+  if (filesList.length === 0) {
+    toast('Please select at least one folder or file to profile');
+    return;
+  }
+  
+  const content = document.getElementById('profilerContent');
+  content.innerHTML = `
+    <div class="empty">
+      <div class="spin" style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+      <div class="etxt">Profiling selected databases...</div>
+      <div class="esub">Scanning sample data to identify format, domains, and country distribution. Please wait.</div>
+    </div>
+  `;
+
+  const profileBtn = document.getElementById('profileBtn');
+  profileBtn.disabled = true;
+  profileBtn.textContent = '⏳ PROFILING IN PROGRESS...';
+
+  try {
+    const r = await fetch(API + '/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: filesList })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Unknown error');
+    
+    renderProfileReport(d.report);
+  } catch(e) {
+    toast('Profile error: ' + e.message);
+    content.innerHTML = `
+      <div class="empty">
+        <div style="color: var(--orange); font-size: 40px; margin-bottom: 15px;">⚠️</div>
+        <div class="etxt">Profiling Failed</div>
+        <div class="esub">${esc(e.message)}</div>
+      </div>
+    `;
+  } finally {
+    profileBtn.disabled = false;
+    profileBtn.textContent = '📊 PROFILE SELECTED DATABASES';
+  }
+}
+
+let activeReport = null;
+let filteredReportKeys = [];
+let renderedReportCount = 0;
+const REPORT_PAGE_SIZE = 50;
+
+function filterReports() {
+  if (!activeReport) return;
+  const filterVal = document.getElementById('reportFilter').value;
+  
+  filteredReportKeys = Object.keys(activeReport).filter(filePath => {
+    const info = activeReport[filePath];
+    const hasEmails = info.top_tlds && info.top_tlds.length > 0;
+    const hasPhones = info.top_ccs && info.top_ccs.length > 0;
+    
+    let hasIndianData = false;
+    if (info.country_origin && info.country_origin.country === "India") {
+      hasIndianData = true;
+    } else {
+      if (info.top_tlds && info.top_tlds.find(([tld]) => tld === "in")) {
+        hasIndianData = true;
+      }
+      if (info.top_ccs && info.top_ccs.find(([cc]) => cc === "91")) {
+        hasIndianData = true;
+      }
+    }
+    
+    if (filterVal === 'indian') {
+      return hasIndianData;
+    } else if (filterVal === 'detected') {
+      return hasEmails || hasPhones;
+    }
+    return true; // 'all'
+  });
+  
+  renderedReportCount = 0;
+  document.getElementById('reportsList').innerHTML = '';
+  loadMoreReports();
+}
+
+function loadMoreReports() {
+  if (!activeReport) return;
+  const container = document.getElementById('reportsList');
+  const nextKeys = filteredReportKeys.slice(renderedReportCount, renderedReportCount + REPORT_PAGE_SIZE);
+  
+  if (nextKeys.length === 0 && renderedReportCount === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="eico">🔍</div>
+        <div class="etxt">No matching reports</div>
+        <div class="esub">No files match the selected filter.</div>
+      </div>
+    `;
+    document.getElementById('loadMoreBtn').style.display = 'none';
+    document.getElementById('reportStatsBadge').textContent = `0 / 0 Files Shown`;
+    return;
+  }
+  
+  const countryNames = {
+    "91": "India",
+    "1": "USA/Canada",
+    "44": "United Kingdom",
+    "49": "Germany",
+    "33": "France",
+    "7": "Russia/Kazakhstan",
+    "81": "Japan",
+    "86": "China",
+    "55": "Brazil",
+    "39": "Italy",
+    "34": "Spain",
+    "61": "Australia",
+    "31": "Netherlands",
+    "48": "Poland",
+    "90": "Turkey",
+    "82": "South Korea",
+    "62": "Indonesia",
+    "92": "Pakistan",
+    "380": "Ukraine",
+    "84": "Vietnam"
+  };
+  
+  let html = '';
+  nextKeys.forEach(filePath => {
+    const info = activeReport[filePath];
+    const tldHtml = info.top_tlds.length > 0 
+      ? info.top_tlds.map(([tld, count]) => {
+          let extra = "";
+          if (tld === "in") extra = " (India)";
+          else if (tld === "us") extra = " (USA)";
+          else if (tld === "uk") extra = " (UK)";
+          else if (tld === "ru") extra = " (Russia)";
+          return `<div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--txt2);">${tld === 'in' ? '🇮🇳 ' : ''}.${tld}${extra}</span>
+            <span style="color:var(--cyan); font-weight:bold;">${count.toLocaleString()}</span>
+          </div>`;
+        }).join('')
+      : '<div style="font-size:11px; color:var(--dim);">No email patterns detected in sample.</div>';
+
+    const ccsHtml = info.top_ccs.length > 0
+      ? info.top_ccs.map(([cc, count]) => {
+          const country = countryNames[cc] || "Other Country";
+          const colorClass = cc === "91" ? 'style="color:var(--cyan); font-weight:bold;"' : '';
+          return `<div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--txt2); font-weight:${cc === "91" ? "bold" : "normal"};">${cc === '91' ? '🇮🇳 ' : ''}+${cc} (${country})</span>
+            <span ${colorClass}>${count.toLocaleString()}</span>
+          </div>`;
+        }).join('')
+      : '<div style="font-size:11px; color:var(--dim);">No phone patterns detected in sample.</div>';
+
+    const origin = info.country_origin || { country: "Unknown / Global", flag: "🌐", confidence: "Low", breakdown: [] };
+    const isIndian = origin.country === "India";
+    const confidenceColor = origin.confidence === "High" ? varColor('green') : (origin.confidence === "Medium" ? varColor('purple') : varColor('dim'));
+    
+    function varColor(name) {
+      return `var(--${name})`;
+    }
+    
+    let breakdownHtml = '';
+    if (origin.breakdown && origin.breakdown.length > 0) {
+      breakdownHtml = origin.breakdown.map(b => `
+        <div style="display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:3px 8px; font-size:10px;">
+          <span>${b.flag}</span>
+          <span style="color:var(--txt2);">${b.country}:</span>
+          <strong style="color:var(--cyan);">${b.percentage}%</strong>
+        </div>
+      `).join(' ');
+    }
+
+    const countryBadgeHtml = `
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:20px;">${origin.flag}</span>
+            <div>
+              <div style="font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px;">Detected Country Origin</div>
+              <div style="font-size:14px; font-weight:bold; color:${isIndian ? 'var(--cyan)' : 'var(--txt)'};">
+                ${origin.country} ${isIndian ? '🇮🇳' : ''}
+              </div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02); padding:4px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); font-size:11px;">
+            Confidence: <span style="font-weight:bold; color:${confidenceColor};">${origin.confidence}</span>
+          </div>
+        </div>
+        ${breakdownHtml ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.03);">
+          ${breakdownHtml}
+        </div>` : ''}
+      </div>
+    `;
+
+    html += `
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2); margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--txt); word-break:break-all;">${info.is_folder ? '📁' : '📄'} ${esc(filePath)}</h3>
+            <div style="font-size:11px; color:var(--dim); margin-top:2px;">Format: <strong style="color:var(--purple);">${info.format.toUpperCase()}</strong> | Size: <strong>${info.file_size_human}</strong>${info.is_folder ? ` | Files: <strong>${info.total_files.toLocaleString()}</strong> (Sampled ${info.sampled_files})` : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px; color:var(--txt2);">Lines Sampled: <strong style="color:#fff;">${info.total_lines_sampled.toLocaleString()}</strong></div>
+            <div style="font-size:10px; color:var(--dim);">Estimated Total Lines: ~${info.total_lines_estimated.toLocaleString()}</div>
+          </div>
+        </div>
+        
+        ${countryBadgeHtml}
+        
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+          <div style="background:var(--bg2); border:1px solid rgba(255,255,255,0.03); border-radius:10px; padding:12px;">
+            <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--purple); margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">📧 Top Email Domains</h4>
+            ${tldHtml}
+          </div>
+          <div style="background:var(--bg2); border:1px solid rgba(255,255,255,0.03); border-radius:10px; padding:12px;">
+            <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--orange); margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">📞 Top Phone Country Codes</h4>
+            ${ccsHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  while(tempDiv.firstChild) {
+    container.appendChild(tempDiv.firstChild);
+  }
+
+  renderedReportCount += nextKeys.length;
+  document.getElementById('reportStatsBadge').textContent = `${renderedReportCount} / ${filteredReportKeys.length} Files Shown`;
+
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  if (renderedReportCount < filteredReportKeys.length) {
+    loadMoreBtn.style.display = 'block';
+    loadMoreBtn.textContent = `📊 LOAD MORE FILES (${filteredReportKeys.length - renderedReportCount} REMAINING)`;
+  } else {
+    loadMoreBtn.style.display = 'none';
+  }
+}
+
+function renderProfileReport(report) {
+  activeReport = report;
+
+  const content = document.getElementById('profilerContent');
+  content.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+      <div>
+        <h2 style="font-family:'Orbitron',monospace; font-size:20px; color:var(--purple); display:inline-block; margin-right: 15px;">DATABASE PROFILE REPORT</h2>
+        <span class="badge2" style="font-size:12px;" id="reportStatsBadge">0 / 0 Files Shown</span>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span style="font-size:12px; color:var(--txt2);">Filter:</span>
+        <select id="reportFilter" onchange="filterReports()" style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 16px; color:var(--txt); outline:none; cursor:pointer; font-size:12px;">
+          <option value="all">📁 All Profiled Files</option>
+          <option value="indian">🇮🇳 Only Indian Data</option>
+          <option value="detected">📧/📞 Only with Detected Data</option>
+        </select>
+      </div>
+    </div>
+    <div id="reportsList"></div>
+    <button id="loadMoreBtn" onclick="loadMoreReports()" style="width: 100%; padding: 15px; margin-top: 10px; background: var(--card); border: 1px dashed var(--purple); border-radius: 12px; color: var(--purple); font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;">
+      📊 LOAD MORE FILES
+    </button>
+  `;
+
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  loadMoreBtn.onmouseover = () => { loadMoreBtn.style.background = 'rgba(124, 58, 237, 0.05)'; loadMoreBtn.style.borderColor = 'var(--pink)'; loadMoreBtn.style.color = 'var(--pink)'; };
+  loadMoreBtn.onmouseout = () => { loadMoreBtn.style.background = 'var(--card)'; loadMoreBtn.style.borderColor = 'var(--purple)'; loadMoreBtn.style.color = 'var(--purple)'; };
+
+  filterReports();
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 4000);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Large database files (too big for GitHub)
+database/*.txt
+database/subfolder_test/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Log files
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temp files
+]

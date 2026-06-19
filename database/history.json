@@ -1,0 +1,170 @@
+[
+  {
+    "query": "netflix",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781861921
+  },
+  {
+    "query": "ssc",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781861784
+  },
+  {
+    "query": "haryana",
+    "type": "any",
+    "count": 741,
+    "timestamp": 1781819196
+  },
+  {
+    "query": "dcrust",
+    "type": "any",
+    "count": 53,
+    "timestamp": 1781819135
+  },
+  {
+    "query": "youtube",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781819110
+  },
+  {
+    "query": "a0---a0",
+    "type": "any",
+    "count": 2,
+    "timestamp": 1781818566
+  },
+  {
+    "query": "dcrust:haryana:pabnera:131039:darkweb:ramankumarrv:rk8522 -hotmail  -yahoo -live -uk  -de",
+    "type": "any",
+    "count": 1956,
+    "timestamp": 1781816547
+  },
+  {
+    "query": "youtube:dcrust:haryana:pabnera:131039:darkweb:ramankumarrv:rk8522 -hotmail  -yahoo -live",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815833
+  },
+  {
+    "query": "youtube:dcrust:haryana:pabnera:131039:darkweb:ramankumarrv:rk8522 -hotmail",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815764
+  },
+  {
+    "query": "gmail -facebook",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815499
+  },
+  {
+    "query": "youtube:dcrust:haryana:pabnera:131039:darkweb:ramankumarrv:rk8522",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815402
+  },
+  {
+    "query": "youtube:dcrust:haryana:pabnera:131039:darkweb:osint:techy:rk8522",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815325
+  },
+  {
+    "query": "youtube:dcrust:haryana:pabnera:131039:darkweb:osint:techy:aoi:rk8522",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781815106
+  },
+  {
+    "query": "youtube:dcrust:haryana",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781814930
+  },
+  {
+    "query": "ssc:dcrust",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781814779
+  },
+  {
+    "query": "gmail:outlook",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781814571
+  },
+  {
+    "query": "facebook:gmail",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781813792
+  },
+  {
+    "query": "telegram",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781813496
+  },
+  {
+    "query": "instagram",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781813134
+  },
+  {
+    "query": "220014360",
+    "type": "any",
+    "count": 2,
+    "timestamp": 1781812912
+  },
+  {
+    "query": "facebook",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781812458
+  },
+  {
+    "query": "22001436005",
+    "type": "any",
+    "count": 2,
+    "timestamp": 1781811878
+  },
+  {
+    "query": "gmail.com",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781803641
+  },
+  {
+    "query": "facebook.com",
+    "type": "domain",
+    "count": 2000,
+    "timestamp": 1781801844
+  },
+  {
+    "query": "gmail.com",
+    "type": "email",
+    "count": 2000,
+    "timestamp": 1781801724
+  },
+  {
+    "query": "1234",
+    "type": "email",
+    "count": 85,
+    "timestamp": 1781801633
+  },
+  {
+    "query": "1234",
+    "type": "any",
+    "count": 2000,
+    "timestamp": 1781801562
+  },
+  {
+    "query": "nested-site.com",
+    "type": "domain",
+    "count": 1,
+    "timestamp": 1781799502
+  }
+]

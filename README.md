@@ -9,6 +9,18 @@
 - **Web UI** — Clean, fast browser-based interface (`index.html` & `profiler.html`)
 - **Python Backend** — Lightweight server with full API support
 
+---
+
+## 💾 Database Download
+
+The breach/combo database files are hosted on pCloud (too large for GitHub).
+
+> **📥 [Download Database from pCloud](https://filedn.com/lO4GDysFuFnRUboOHVSflVj/)**
+
+After downloading, place the `.txt` files inside the `database/` folder and use `import_breaches.py` to import them.
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -20,14 +32,19 @@
 ├── import_breaches.py  # Breach data importer
 ├── start.bat           # Quick launcher (Windows)
 ├── run_profiler.bat    # Profiler launcher (Windows)
-└── database/           # Breach database storage (local only)
+└── database/           # Place downloaded database files here
     └── history.json    # Import history
 ```
 
 ## ⚡ Quick Start
 
 ```bash
-# Start the main OSINT server
+# 1. Download the database from pCloud link above and put .txt files in database/
+
+# 2. Import the breach data
+python import_breaches.py
+
+# 3. Start the main OSINT server
 start.bat
 
 # Or manually:

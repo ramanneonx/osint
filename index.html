@@ -379,10 +379,28 @@ header{padding:20px 32px;display:flex;align-items:center;justify-content:space-b
 .rline{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03)}
 .rline-n{color:var(--dim);margin-right:12px;user-select:none}
 
+/* DB BANNER */
+.db-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:linear-gradient(135deg,rgba(0,102,255,.1),rgba(124,58,237,.1));
+  border:1px solid rgba(0,102,255,.3);border-radius:14px;padding:14px 20px;
+  margin-top:16px;flex-wrap:wrap}
+.db-banner-left{display:flex;align-items:center;gap:12px}
+.db-icon{font-size:24px}
+.db-info{display:flex;flex-direction:column;gap:2px}
+.db-title{font-size:13px;font-weight:700;color:var(--txt)}
+.db-sub{font-size:11px;color:var(--txt2)}
+.db-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;
+  border-radius:10px;padding:10px 20px;color:#fff;font-weight:700;font-size:12px;
+  cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:7px;
+  transition:transform .2s,box-shadow .2s;white-space:nowrap;letter-spacing:.5px;
+  font-family:'Inter',sans-serif}
+.db-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,102,255,.4)}
+
 /* RESPONSIVE */
 @media(max-width:1100px){.main{grid-template-columns:1fr}.sidebar{order:2}.rarea{order:1}}
 @media(max-width:600px){header{padding:14px 16px}.hero{padding:36px 16px 24px}
-  .srow{flex-direction:column}.hstats{display:none}}
+  .srow{flex-direction:column}.hstats{display:none}
+  .db-banner{flex-direction:column;text-align:center}.db-banner-left{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -442,6 +460,20 @@ header{padding:20px 32px;display:flex;align-items:center;justify-content:space-b
       <span class="chip" onclick="qs('roblox.com','domain')">Roblox</span>
       <span class="chip" onclick="qs('amazon.com','domain')">Amazon</span>
     </div>
+  </div>
+
+  <!-- DATABASE DOWNLOAD BANNER -->
+  <div class="db-banner">
+    <div class="db-banner-left">
+      <div class="db-icon">💾</div>
+      <div class="db-info">
+        <div class="db-title">📥 Download the Breach Database</div>
+        <div class="db-sub">Get the full combo/breach database files to use with this tool. Hosted on pCloud.</div>
+      </div>
+    </div>
+    <a class="db-btn" href="https://filedn.com/lO4GDysFuFnRUboOHVSflVj/" target="_blank" rel="noopener noreferrer">
+      ☁️ Download from pCloud
+    </a>
   </div>
 
   <!-- PROGRESS -->
@@ -521,6 +553,11 @@ header{padding:20px 32px;display:flex;align-items:center;justify-content:space-b
           <span class="etag" onclick="qs('password123','password')">password123</span>
           <span class="etag" onclick="qs('netflix','domain')">netflix</span>
           <span class="etag" onclick="qs('@gmail.com','any')">@gmail.com</span>
+        </div>
+        <div style="margin-top:24px">
+          <a class="db-btn" href="https://filedn.com/lO4GDysFuFnRUboOHVSflVj/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin:0 auto">
+            ☁️ Download Database from pCloud
+          </a>
         </div>
       </div>
 
